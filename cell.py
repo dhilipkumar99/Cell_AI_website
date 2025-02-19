@@ -208,7 +208,7 @@ st.markdown(
                 </div>
                 <div>
                     <h4>Step 3</h4>
-                    <p>Download the output .zip file containing annotated ROIs for all objects of interest.</p>
+                    <p>Download the output .zip file containing annotated ROIs for all objects of interest. It's that simple!</p>
                 </div>
             </div>
         </div>
