@@ -1,5 +1,2 @@
 streamlit
 Pillow
-zipfile36
-base64
-os
