@@ -141,9 +141,6 @@ with col2:
         """
         <div class="card">
         <ul>
-            <li><strong>Save Time:</strong> Upload your datasets and let CellAI handle the ROI selection in minutes.</li>
-            <li><strong>Increase Precision:</strong> Benefit from consistent and accurate image segmentation.</li>
-            <li><strong>User-Friendly:</strong> Our intuitive interface is designed for researchers of all experience levels.</li>
             <p>Automated segmentation for Region of Interest (ROI) selection in ImageJ significantly enhances the efficiency and accuracy of 
             fluorescent microscopy analysis. Traditional manual ROI selection is time-consuming and prone to variability, especially when dealing with large datasets. 
             By leveraging advanced computer vision techniques, our AI-driven segmentation service eliminates the need for labor-intensive labeling, allowing 
@@ -154,6 +151,9 @@ with col2:
             complex cellular dynamics but also aids in standardizing image analysis workflows across labs. The intuitive interface allows users of all experience 
             levels to easily integrate this technology into their research pipeline, making cutting-edge image analysis accessible without requiring extensive 
             computational expertise.<p>
+            <li><strong>Save Time:</strong> Upload your datasets and let CellAI handle the ROI selection in minutes.</li>
+            <li><strong>Increase Precision:</strong> Benefit from consistent and accurate image segmentation.</li>
+            <li><strong>User-Friendly:</strong> Our intuitive interface is designed for researchers of all experience levels.</li>
         </ul>
         </div>
         """,
