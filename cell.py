@@ -78,7 +78,6 @@ st.markdown(
         <a href="#features">Features</a>
         <a href="#testimonials">Testimonials</a>
         <a href="#how-it-works">How It Works</a>
-        <a href="#faq">FAQ</a>
         <a href="#contact">Contact</a>
     </div>
     """,
