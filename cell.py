@@ -118,8 +118,9 @@ st.markdown(
     <section class="section" style="background-color:#f7d9d9;">
         <div class="card">
             <h3>CellAI revolutionizes the way scientists analyze image datasets.</h3>
-            <p>By leveraging advanced computer vision techniques, our AI performs automated Region of Interest (ROI) selection, 
-            drastically reducing the time required for manual processing. CellAI empowers researchers to focus on their 
+            <p>Are you spending hours manually labeling fluorescence microscopy images? Let CellAI revolutionize your workflow. 
+            By leveraging cutting-edge computer vision, our AI-driven segmentation model, CellAI, automates Region of Interest (ROI) selection in ImageJ, 
+            significantly reducing the time and effort required for manual labeling. CellAI empowers researchers to focus on their 
             discoveries rather than labor-intensive tasks.</p>
         </div>
     </section>
@@ -143,6 +144,16 @@ with col2:
             <li><strong>Save Time:</strong> Upload your datasets and let CellAI handle the ROI selection in minutes.</li>
             <li><strong>Increase Precision:</strong> Benefit from consistent and accurate image segmentation.</li>
             <li><strong>User-Friendly:</strong> Our intuitive interface is designed for researchers of all experience levels.</li>
+            <p>Automated segmentation for Region of Interest (ROI) selection in ImageJ significantly enhances the efficiency and accuracy of 
+            fluorescent microscopy analysis. Traditional manual ROI selection is time-consuming and prone to variability, especially when dealing with large datasets. 
+            By leveraging advanced computer vision techniques, our AI-driven segmentation service eliminates the need for labor-intensive labeling, allowing 
+            researchers to focus on data interpretation rather than tedious annotation tasks. This automation ensures consistency in image processing, 
+            reducing human error and enhancing reproducibility across experiments, which is crucial for high-quality research outcomes.<p>
+            <p>Beyond efficiency, automated segmentation improves precision in identifying and classifying cellular structures. Our AI models are trained to detect 
+            subtle fluorescence variations, distinguishing between relevant biological features with high accuracy. This not only benefits researchers studying 
+            complex cellular dynamics but also aids in standardizing image analysis workflows across labs. The intuitive interface allows users of all experience 
+            levels to easily integrate this technology into their research pipeline, making cutting-edge image analysis accessible without requiring extensive 
+            computational expertise.<p>
         </ul>
         </div>
         """,
