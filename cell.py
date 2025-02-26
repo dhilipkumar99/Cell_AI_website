@@ -76,7 +76,7 @@ st.markdown(
     <div class="navbar">
         <a href="#">Home</a>
         <a href="#features">Features</a>
-        <a href="#testimonials">Testimonials</a>
+        <a href="#support">Support</a>
         <a href="#how-it-works">How It Works</a>
         <a href="#contact">Contact</a>
     </div>
@@ -118,7 +118,7 @@ st.markdown(
         <div class="card">
             <h3>CellAI revolutionizes the way scientists analyze image datasets.</h3>
             <p>Are you spending hours manually labeling fluorescence microscopy images? Let CellAI revolutionize your workflow. 
-            By leveraging cutting-edge computer vision, our AI-driven segmentation model, CellAI, automates Region of Interest (ROI) selection in ImageJ, 
+            By leveraging cutting-edge computer vision, our AI-ML segmentation model, CellAI, automates Region of Interest (ROI) selection in ImageJ, 
             significantly reducing the time and effort required for manual labeling. CellAI empowers researchers to focus on their 
             discoveries rather than labor-intensive tasks.</p>
         </div>
@@ -160,8 +160,8 @@ with col2:
     )
 
 # Testimonials Section
-st.markdown("<a id='testimonials'></a>", unsafe_allow_html=True)
-st.markdown("### What Our Users Say")
+st.markdown("<a id='support'></a>", unsafe_allow_html=True)
+st.markdown("### Set up a Lab Account")
 
 user1_base64 = "data:image/jpeg;base64," + image_to_base64("user1.jpeg")
 user2_base64 = "data:image/jpeg;base64," + image_to_base64("user2.jpeg")
@@ -169,17 +169,23 @@ user2_base64 = "data:image/jpeg;base64," + image_to_base64("user2.jpeg")
 st.markdown(
     f"""
     <section class="section">
+        <p style="text-align: center; font-size: 18px; font-weight: normal;">
+        At CellAI, we contract with research labs and companies to provide them with a subscription to our high quality image segmentation software. Lab users can submit their research images for 
+        annotation - with no data limit - and receive their annotated ROIs within minutes. Just load your ROIs into ImageJ, and you're good to go! To get started with CellAI, or for 
+        questions about our service, reach out to our sales representative at <a href="mailto:cell.ai.solutions@gmail.com">cell.ai.solutions@gmail.com</a>
+        </p>
         <div class="card">
+            <h2 style="margin-bottom: 20px;">Our Team</h2>
             <div style="display: flex; justify-content: space-around;">
                 <div style="text-align: center;">
                     <img src="{user1_base64}" style="width: 120px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 15px;">
-                    <p><em>"CellAI saved us weeks of manual work!"</em></p>
-                    <p>- Deevya Shalini, Wake Forrest University</p>
+                    <p><em></em></p>
+                    <p>- Dhilip Raman, Sales Representative</p>
                 </div>
                 <div style="text-align: center;">
                     <img src="{user2_base64}" style="width: 120px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 15px;">
-                    <p><em>"Highly recommend for any lab working with image datasets."</em></p>
-                    <p>- Dr. Spencer Gang, UC San Diego</p>
+                    <p><em></em></p>
+                    <p>- Avneesh Mehta, Principal Engineer</p>
                 </div>
             </div>
         </div>
@@ -203,7 +209,7 @@ st.markdown(
                 </div>
                 <div>
                     <h4>Step 2</h4>
-                    <p>CellAI processes your images using cutting-edge segmentation algorithms.</p>
+                    <p>CellAI finds fluorescent regions of interest, maps them, and draws ROI polygons using cutting-edge segmentation algorithms. </p>
                 </div>
                 <div>
                     <h4>Step 3</h4>
