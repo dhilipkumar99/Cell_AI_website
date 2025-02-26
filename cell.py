@@ -172,7 +172,7 @@ st.markdown(
         <p style="text-align: center; font-size: 18px; font-weight: normal;">
         At CellAI, we contract with research labs and companies to provide them with a subscription to our high quality image segmentation software. Lab users can submit their research images for 
         annotation - with no data limit - and receive their annotated ROIs within minutes. Just load your ROIs into ImageJ, and you're good to go! To get started with CellAI, or for 
-        questions about our service, reach out to our sales representative at <a href="mailto:cell.ai.solutions@gmail.com">cell.ai.solutions@gmail.com</a>
+        questions about our service, reach out to our sales representative at <a href="mailto:cell.ai.solutions@gmail.com">cell.ai.solutions@gmail.com</a> to set up a consult with our team.
         </p>
         <div class="card">
             <h2 style="margin-bottom: 20px;">Our Team</h2>
@@ -180,12 +180,12 @@ st.markdown(
                 <div style="text-align: center;">
                     <img src="{user1_base64}" style="width: 120px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 15px;">
                     <p><em></em></p>
-                    <p>- Dhilip Raman, Sales Representative</p>
+                    <p>Dhilip Raman, Sales Representative</p>
                 </div>
                 <div style="text-align: center;">
                     <img src="{user2_base64}" style="width: 120px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 15px;">
                     <p><em></em></p>
-                    <p>- Avneesh Mehta, Principal Engineer</p>
+                    <p>Avneesh Mehta, Principal Engineer</p>
                 </div>
             </div>
         </div>
