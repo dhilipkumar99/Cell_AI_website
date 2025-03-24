@@ -7,6 +7,8 @@ import pandas as pd
 import csv
 from io import StringIO
 import datetime
+import json
+import shutil
 
 # Set up page config
 st.set_page_config(page_title="CellAI - Automated ROI Selection", layout="wide", page_icon="🤖")
@@ -80,9 +82,49 @@ def load_unsubscribed_users():
     if 'unsubscribed_users' not in st.session_state:
         # Try to load from a file if it exists
         try:
-            df = pd.read_csv('unsubscribed_users.csv')
-            st.session_state.unsubscribed_users = df.to_dict('records')
-        except:
+            # First try CSV in the primary location
+            primary_csv_path = 'unsubscribed_users.csv'
+            if os.path.exists(primary_csv_path):
+                df = pd.read_csv(primary_csv_path)
+                st.session_state.unsubscribed_users = df.to_dict('records')
+                return [user['email'] for user in st.session_state.unsubscribed_users]
+                
+            # Check Mac-specific locations for email script file
+            mac_paths = [
+                os.path.expanduser('~/Documents/Python/unsubscribed_users.csv'),  # Python folder in Documents
+                os.path.expanduser('~/unsubscribed_users.csv'),  # Home directory
+                '/tmp/unsubscribed_users.csv'  # Temp directory
+            ]
+            
+            for path in mac_paths:
+                if os.path.exists(path):
+                    df = pd.read_csv(path)
+                    st.session_state.unsubscribed_users = df.to_dict('records')
+                    # Sync to the primary location
+                    os.makedirs(os.path.dirname(primary_csv_path) or '.', exist_ok=True)
+                    df.to_csv(primary_csv_path, index=False)
+                    return [user['email'] for user in st.session_state.unsubscribed_users]
+                    
+            # Try JSON backup as last resort
+            json_paths = [
+                'unsubscribed_users.json',
+                os.path.expanduser('~/Documents/Python/unsubscribed_users.json'),
+                os.path.expanduser('~/unsubscribed_users.json')
+            ]
+            
+            for json_path in json_paths:
+                if os.path.exists(json_path):
+                    with open(json_path, 'r') as f:
+                        st.session_state.unsubscribed_users = json.load(f)
+                        # Sync to the primary location
+                        df = pd.DataFrame(st.session_state.unsubscribed_users)
+                        df.to_csv(primary_csv_path, index=False)
+                        return [user['email'] for user in st.session_state.unsubscribed_users]
+                        
+            # If we get here, no files were found - initialize empty list
+            st.session_state.unsubscribed_users = []
+        except Exception as e:
+            st.session_state['load_error'] = str(e)
             st.session_state.unsubscribed_users = []
     
     return [user['email'] for user in st.session_state.unsubscribed_users]
@@ -105,8 +147,51 @@ def add_unsubscribed_user(email, reason=""):
 # Function to save unsubscribed users to a CSV file
 def save_unsubscribed_users():
     if 'unsubscribed_users' in st.session_state:
+        # Create DataFrame from session state
         df = pd.DataFrame(st.session_state.unsubscribed_users)
-        df.to_csv('unsubscribed_users.csv', index=False)
+        
+        # Save to Streamlit's directory (primary location)
+        primary_csv_path = 'unsubscribed_users.csv'
+        df.to_csv(primary_csv_path, index=False)
+        
+        # Try to save to locations the email script can access
+        try:
+            # Mac-specific paths, especially for your setup
+            mac_paths = [
+                os.path.expanduser('~/Documents/Python/unsubscribed_users.csv'),  # Your Python folder
+                os.path.expanduser('~/unsubscribed_users.csv'),  # Home directory
+                '/tmp/unsubscribed_users.csv'  # Temp directory that might be accessible
+            ]
+            
+            for path in mac_paths:
+                try:
+                    # Create directory if it doesn't exist
+                    os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+                    # Copy the file
+                    df.to_csv(path, index=False)
+                except Exception as e:
+                    continue
+                    
+            # Export to JSON format as well (sometimes more reliable)
+            json_data = json.dumps(st.session_state.unsubscribed_users)
+            with open('unsubscribed_users.json', 'w') as f:
+                f.write(json_data)
+                
+            # Also try to save JSON to your Python folder
+            json_path = os.path.expanduser('~/Documents/Python/unsubscribed_users.json')
+            try:
+                os.makedirs(os.path.dirname(json_path) or '.', exist_ok=True)
+                with open(json_path, 'w') as f:
+                    f.write(json_data)
+            except:
+                pass
+                
+            # Return success
+            return True
+        except Exception as e:
+            st.session_state['save_error'] = str(e)
+            return False
+    return False
 
 # Function to display the admin page for managing unsubscriptions
 def show_admin_page():
@@ -122,6 +207,61 @@ def show_admin_page():
     if 'unsubscribed_users' not in st.session_state:
         load_unsubscribed_users()
     
+    # Add option to check for file status and sync
+    with st.expander("File Status & Sync Options", expanded=True):
+        st.write("### File Status")
+        
+        # Show file paths and existence
+        csv_exists = os.path.exists('unsubscribed_users.csv')
+        json_exists = os.path.exists('unsubscribed_users.json')
+        mac_csv_exists = os.path.exists(os.path.expanduser('~/Documents/Python/unsubscribed_users.csv'))
+        
+        st.write(f"CSV file in Streamlit directory: {'✅ Exists' if csv_exists else '❌ Not found'}")
+        st.write(f"JSON backup in Streamlit directory: {'✅ Exists' if json_exists else '❌ Not found'}")
+        st.write(f"CSV file in your Python folder: {'✅ Exists' if mac_csv_exists else '❌ Not found'}")
+        
+        # Error messages if any
+        if 'load_error' in st.session_state:
+            st.error(f"Last load error: {st.session_state['load_error']}")
+        if 'save_error' in st.session_state:
+            st.error(f"Last save error: {st.session_state['save_error']}")
+        
+        # Force save button
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Force Save Unsubscribe List"):
+                success = save_unsubscribed_users()
+                if success:
+                    st.success("✅ Unsubscribe list saved to multiple locations")
+                else:
+                    st.error("❌ Error saving unsubscribe list")
+        
+        with col2:
+            if st.button("Check for External Updates"):
+                # Temporarily store current list
+                current_emails = {u['email'].lower() for u in st.session_state.unsubscribed_users}
+                
+                # Force reload from files
+                if 'unsubscribed_users' in st.session_state:
+                    del st.session_state['unsubscribed_users']
+                
+                # Load from files
+                new_emails = load_unsubscribed_users()
+                
+                # Compare
+                added = len(new_emails) - len(current_emails)
+                if added > 0:
+                    st.success(f"✅ Found {added} new unsubscribed emails")
+                else:
+                    st.info("No new unsubscribes found")
+        
+        # Show manual sync instructions
+        st.write("### Manual Sync Instructions")
+        st.write("If automatic sync isn't working:")
+        st.write("1. Download the unsubscribe list using the button below")
+        st.write("2. Place the file in your Python folder at: ~/Documents/Python/")
+        st.write("3. Make sure the filename is exactly: unsubscribed_users.csv")
+    
     # Display the list
     if st.session_state.unsubscribed_users:
         df = pd.DataFrame(st.session_state.unsubscribed_users)
@@ -133,7 +273,7 @@ def show_admin_page():
         st.download_button(
             label="Download Unsubscribed List as CSV",
             data=csv,
-            file_name="unsubscribed_users_export.csv",
+            file_name="unsubscribed_users.csv",
             mime="text/csv"
         )
         
@@ -143,7 +283,6 @@ def show_admin_page():
                 st.session_state.unsubscribed_users = []
                 save_unsubscribed_users()
                 st.success("Unsubscribe list has been cleared")
-                # Use rerun() instead of experimental_rerun()
                 st.rerun()
     else:
         st.info("No unsubscribed users found")
@@ -175,7 +314,7 @@ def show_admin_page():
                 
                 save_unsubscribed_users()
                 st.success(f"Successfully imported {imported} new email addresses")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("CSV file must contain an 'email' column")
         except Exception as e:
@@ -371,9 +510,6 @@ def main():
             """,
             unsafe_allow_html=True,
         )
-
-    # Rest of the website content continues...
-    # (Truncated for brevity in this example)
 
     # Footer Section
     st.markdown("<a id='contact'></a>", unsafe_allow_html=True)
