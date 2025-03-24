@@ -61,13 +61,18 @@ def handle_unsubscribe():
         submitted = st.form_submit_button("Confirm Unsubscribe")
         
         if submitted and email_input:
+            # Check if the confirmation checkbox is checked (when applicable)
+            if 'confirm_email' in locals() and not confirm_email:
+                st.error("Please confirm your email address by checking the confirmation box")
+                return
+                
             # Load existing unsubscribed users
             unsubscribed = load_unsubscribed_users()
             
             # Add the new unsubscribed email if it's not already in the list
             if email_input.lower() not in [e.lower() for e in unsubscribed]:
                 add_unsubscribed_user(email_input, reason if reason != "Select a reason (optional)" else "No reason provided")
-                st.success(f"You have been successfully unsubscribed from our email communications. You will no longer receive emails from CellAI.")
+                st.success(f"You have been successfully unsubscribed from our email communications. You will no longer receive emails from Fluorocell.ai.")
             else:
                 st.info("Your email is already unsubscribed from our communications.")
             
@@ -142,8 +147,7 @@ def show_admin_page():
             if st.checkbox("I understand this will permanently delete all unsubscribe data"):
                 st.session_state.unsubscribed_users = []
                 save_unsubscribed_users()
-                st.success("Unsubscribe list has been cleared")
-                # Use rerun() instead of experimental_rerun()
+                st.success(f"Unsubscribe list has been cleared")
                 st.rerun()
     else:
         st.info("No unsubscribed users found")
@@ -175,7 +179,9 @@ def show_admin_page():
                 
                 save_unsubscribed_users()
                 st.success(f"Successfully imported {imported} new email addresses")
-                st.experimental_rerun()
+                st.rerun()
+            else:
+                st.error("CSV file must contain an 'email' column")
             else:
                 st.error("CSV file must contain an 'email' column")
         except Exception as e:
