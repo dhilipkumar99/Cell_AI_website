@@ -21,7 +21,7 @@ def handle_unsubscribe():
     st.title("Unsubscribe from CellAI Email Communications")
     
     # Get email from query parameters - check multiple possible parameter names
-    # Using the new non-experimental API
+    # Using the non-experimental API
     email = st.query_params.get("email", [""])[0]
     
     # If email is not in the query params directly, check if it's passed as part of the unsubscribe parameter
@@ -30,8 +30,16 @@ def handle_unsubscribe():
     
     # Create a form for unsubscribing
     with st.form("unsubscribe_form"):
+        # Display the full email address above the form input
         if email:
-            email_input = st.text_input("Your Email Address", value=email, disabled=True)
+            st.markdown(f"### Email address to unsubscribe: **{email}**")
+            
+            # Use a full-width text input that shows the complete email
+            # Note: We're intentionally NOT using disabled=True as that can cause display issues
+            email_input = st.text_input("Confirm Email Address", 
+                                       value=email,
+                                       key="email_field",
+                                       help="Please confirm this is your email address")
         else:
             email_input = st.text_input("Your Email Address", placeholder="Enter your email address")
         
