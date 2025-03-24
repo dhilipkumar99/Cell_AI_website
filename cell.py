@@ -21,7 +21,7 @@ def handle_unsubscribe():
     st.title("Unsubscribe from CellAI Email Communications")
     
     # Get email from query parameters - check multiple possible parameter names
-    query_params = st.experimental_get_query_params()
+    query_params = st.query_params()
     email = query_params.get("email", [""])[0]
     
     # If email is not in the query params directly, check if it's passed as part of the unsubscribe parameter
