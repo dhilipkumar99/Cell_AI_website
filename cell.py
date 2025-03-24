@@ -21,12 +21,12 @@ def handle_unsubscribe():
     st.title("Unsubscribe from CellAI Email Communications")
     
     # Get email from query parameters - check multiple possible parameter names
-    query_params = st.query_params()
-    email = query_params.get("email", [""])[0]
+    # Using the new non-experimental API
+    email = st.query_params.get("email", [""])[0]
     
     # If email is not in the query params directly, check if it's passed as part of the unsubscribe parameter
-    if not email and "unsubscribe" in query_params:
-        email = query_params.get("unsubscribe", [""])[0]
+    if not email and "unsubscribe" in st.query_params:
+        email = st.query_params.get("unsubscribe", [""])[0]
     
     # Create a form for unsubscribing
     with st.form("unsubscribe_form"):
@@ -135,7 +135,8 @@ def show_admin_page():
                 st.session_state.unsubscribed_users = []
                 save_unsubscribed_users()
                 st.success("Unsubscribe list has been cleared")
-                st.experimental_rerun()
+                # Use rerun() instead of experimental_rerun()
+                st.rerun()
     else:
         st.info("No unsubscribed users found")
     
@@ -174,11 +175,11 @@ def show_admin_page():
 
 # Check for route/page to display
 def main():
-    # Get path from URL
-    url_path = st.experimental_get_query_params().get("page", [""])[0]
+    # Get path from URL using the new non-experimental API
+    url_path = st.query_params.get("page", [""])[0]
     
     # Check if this is an unsubscribe request
-    if "unsubscribe" in st.experimental_get_query_params():
+    if "unsubscribe" in st.query_params:
         handle_unsubscribe()
         return
     
