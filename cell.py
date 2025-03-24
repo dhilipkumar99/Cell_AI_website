@@ -67,7 +67,7 @@ def handle_unsubscribe():
             # Add the new unsubscribed email if it's not already in the list
             if email_input.lower() not in [e.lower() for e in unsubscribed]:
                 add_unsubscribed_user(email_input, reason if reason != "Select a reason (optional)" else "No reason provided")
-                st.success(f"You have been successfully unsubscribed from our email communications. You will no longer receive emails from CellAI.")
+                st.success(f"You have been successfully unsubscribed from our email communications. You will no longer receive emails from fluorocell.ai.")
             else:
                 st.info("Your email is already unsubscribed from our communications.")
             
