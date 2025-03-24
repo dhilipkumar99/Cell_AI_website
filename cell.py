@@ -62,21 +62,21 @@ def handle_unsubscribe():
         
         if submitted and email_input:
             # Check if the confirmation checkbox is checked (when applicable)
-            if 'confirm_email' in locals() and not confirm_email:
+            has_confirmation = 'confirm_email' in locals()
+            if has_confirmation and not confirm_email:
                 st.error("Please confirm your email address by checking the confirmation box")
-                return
-                
-            # Load existing unsubscribed users
-            unsubscribed = load_unsubscribed_users()
-            
-            # Add the new unsubscribed email if it's not already in the list
-            if email_input.lower() not in [e.lower() for e in unsubscribed]:
-                add_unsubscribed_user(email_input, reason if reason != "Select a reason (optional)" else "No reason provided")
-                st.success(f"You have been successfully unsubscribed from our email communications. You will no longer receive emails from Fluorocell.ai.")
             else:
-                st.info("Your email is already unsubscribed from our communications.")
-            
-            st.write("You may close this page now.")
+                # Load existing unsubscribed users
+                unsubscribed = load_unsubscribed_users()
+                
+                # Add the new unsubscribed email if it's not already in the list
+                if email_input.lower() not in [e.lower() for e in unsubscribed]:
+                    add_unsubscribed_user(email_input, reason if reason != "Select a reason (optional)" else "No reason provided")
+                    st.success(f"You have been successfully unsubscribed from our email communications. You will no longer receive emails from Fluorocell.ai.")
+                else:
+                    st.info("Your email is already unsubscribed from our communications.")
+                
+                st.write("You may close this page now.")
         elif submitted:
             st.error("Please enter a valid email address.")
 
