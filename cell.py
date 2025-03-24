@@ -21,25 +21,17 @@ def handle_unsubscribe():
     st.title("Unsubscribe from CellAI Email Communications")
     
     # Get email from query parameters - check multiple possible parameter names
-    # Using the non-experimental API
-    email = st.query_params.get("email", [""])[0]
+    query_params = st.experimental_get_query_params()
+    email = query_params.get("email", [""])[0]
     
     # If email is not in the query params directly, check if it's passed as part of the unsubscribe parameter
-    if not email and "unsubscribe" in st.query_params:
-        email = st.query_params.get("unsubscribe", [""])[0]
+    if not email and "unsubscribe" in query_params:
+        email = query_params.get("unsubscribe", [""])[0]
     
     # Create a form for unsubscribing
     with st.form("unsubscribe_form"):
-        # Display the full email address above the form input
         if email:
-            st.markdown(f"### Email address to unsubscribe: **{email}**")
-            
-            # Use a full-width text input that shows the complete email
-            # Note: We're intentionally NOT using disabled=True as that can cause display issues
-            email_input = st.text_input("Confirm Email Address", 
-                                       value=email,
-                                       key="email_field",
-                                       help="Please confirm this is your email address")
+            email_input = st.text_input("Your Email Address", value=email, disabled=True)
         else:
             email_input = st.text_input("Your Email Address", placeholder="Enter your email address")
         
@@ -61,22 +53,17 @@ def handle_unsubscribe():
         submitted = st.form_submit_button("Confirm Unsubscribe")
         
         if submitted and email_input:
-            # Check if the confirmation checkbox is checked (when applicable)
-            has_confirmation = 'confirm_email' in locals()
-            if has_confirmation and not confirm_email:
-                st.error("Please confirm your email address by checking the confirmation box")
+            # Load existing unsubscribed users
+            unsubscribed = load_unsubscribed_users()
+            
+            # Add the new unsubscribed email if it's not already in the list
+            if email_input.lower() not in [e.lower() for e in unsubscribed]:
+                add_unsubscribed_user(email_input, reason if reason != "Select a reason (optional)" else "No reason provided")
+                st.success(f"You have been successfully unsubscribed from our email communications. You will no longer receive emails from CellAI.")
             else:
-                # Load existing unsubscribed users
-                unsubscribed = load_unsubscribed_users()
-                
-                # Add the new unsubscribed email if it's not already in the list
-                if email_input.lower() not in [e.lower() for e in unsubscribed]:
-                    add_unsubscribed_user(email_input, reason if reason != "Select a reason (optional)" else "No reason provided")
-                    st.success(f"You have been successfully unsubscribed from our email communications. You will no longer receive emails from Fluorocell.ai.")
-                else:
-                    st.info("Your email is already unsubscribed from our communications.")
-                
-                st.write("You may close this page now.")
+                st.info("Your email is already unsubscribed from our communications.")
+            
+            st.write("You may close this page now.")
         elif submitted:
             st.error("Please enter a valid email address.")
 
@@ -147,8 +134,8 @@ def show_admin_page():
             if st.checkbox("I understand this will permanently delete all unsubscribe data"):
                 st.session_state.unsubscribed_users = []
                 save_unsubscribed_users()
-                st.success(f"Unsubscribe list has been cleared")
-                st.rerun()
+                st.success("Unsubscribe list has been cleared")
+                st.experimental_rerun()
     else:
         st.info("No unsubscribed users found")
     
@@ -179,9 +166,7 @@ def show_admin_page():
                 
                 save_unsubscribed_users()
                 st.success(f"Successfully imported {imported} new email addresses")
-                st.rerun()
-            else:
-                st.error("CSV file must contain an 'email' column")
+                st.experimental_rerun()
             else:
                 st.error("CSV file must contain an 'email' column")
         except Exception as e:
@@ -189,11 +174,11 @@ def show_admin_page():
 
 # Check for route/page to display
 def main():
-    # Get path from URL using the new non-experimental API
-    url_path = st.query_params.get("page", [""])[0]
+    # Get path from URL
+    url_path = st.experimental_get_query_params().get("page", [""])[0]
     
     # Check if this is an unsubscribe request
-    if "unsubscribe" in st.query_params:
+    if "unsubscribe" in st.experimental_get_query_params():
         handle_unsubscribe()
         return
     
