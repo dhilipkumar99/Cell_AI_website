@@ -320,9 +320,24 @@ def show_admin_page():
         except Exception as e:
             st.error(f"Error importing file: {e}")
 
-# Check for route/page to display
+#Check for route to display
 def main():
-    # Get path from URL using the new non-experimental API
+    # Check if debug mode is enabled
+    if "debug" in st.query_params:
+        st.title("Debug Information")
+        st.write(f"Current working directory: {os.getcwd()}")
+        st.write("Files in current directory:")
+        files = os.listdir(".")
+        for file in files:
+            st.write(f"- {file}")
+            
+        if os.path.exists("unsubscribed_users.csv"):
+            st.write("Contents of unsubscribed_users.csv:")
+            df = pd.read_csv("unsubscribed_users.csv")
+            st.dataframe(df)
+        return
+    
+    # Get path from URL using the non-experimental API
     url_path = st.query_params.get("page", [""])[0]
     
     # Check if this is an unsubscribe request
