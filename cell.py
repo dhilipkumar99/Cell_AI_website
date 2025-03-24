@@ -323,8 +323,6 @@ def show_admin_page():
 #Check for route to display
 def main():
     # Check if debug mode is enabled
-def main():
-    # Check if debug mode is enabled
     if "debug" in st.query_params:
         st.title("Debug Information")
         st.write(f"Current working directory: {os.getcwd()}")
