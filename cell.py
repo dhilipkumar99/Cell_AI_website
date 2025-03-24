@@ -18,7 +18,7 @@ def image_to_base64(image_path):
 
 # Function to handle unsubscribe requests
 def handle_unsubscribe():
-    st.title("Unsubscribe from Fluorocell.ai Email Communications")
+    st.title("Unsubscribe from CellAI Email Communications")
     
     # Get email from query parameters - check multiple possible parameter names
     # Using the non-experimental API
