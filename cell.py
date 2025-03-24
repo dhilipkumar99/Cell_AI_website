@@ -323,6 +323,8 @@ def show_admin_page():
 #Check for route to display
 def main():
     # Check if debug mode is enabled
+def main():
+    # Check if debug mode is enabled
     if "debug" in st.query_params:
         st.title("Debug Information")
         st.write(f"Current working directory: {os.getcwd()}")
@@ -330,12 +332,346 @@ def main():
         files = os.listdir(".")
         for file in files:
             st.write(f"- {file}")
-            
-        if os.path.exists("unsubscribed_users.csv"):
-            st.write("Contents of unsubscribed_users.csv:")
+        
+        # CSV Management Section
+        st.header("Unsubscribed Users Management")
+        
+        # Initialize or load CSV data
+        csv_exists = os.path.exists("unsubscribed_users.csv")
+        
+        if csv_exists:
             df = pd.read_csv("unsubscribed_users.csv")
-            st.dataframe(df)
+            
+            # Store the dataframe in session state for editing
+            if 'df_unsubscribed' not in st.session_state:
+                st.session_state.df_unsubscribed = df.copy()
+            
+            # Display current data with options to edit
+            st.subheader("Current Unsubscribed Users")
+            
+            # Create tabs for different operations
+            tab1, tab2, tab3, tab4 = st.tabs(["View/Edit", "Delete Rows", "Add New Emails", "Upload/Append"])
+            
+            with tab1:
+                # Editable dataframe
+                edited_df = st.data_editor(
+                    st.session_state.df_unsubscribed, 
+                    use_container_width=True,
+                    num_rows="dynamic",
+                    key="editor"
+                )
+                
+                if st.button("Save Changes", key="save_changes"):
+                    try:
+                        edited_df.to_csv("unsubscribed_users.csv", index=False)
+                        st.session_state.df_unsubscribed = edited_df.copy()
+                        st.success("Changes saved successfully!")
+                        
+                        # Try to save to the additional locations for email script compatibility
+                        save_unsubscribed_users_to_all_locations(edited_df)
+                    except Exception as e:
+                        st.error(f"Error saving changes: {e}")
+            
+            with tab2:
+                st.write("Select rows to delete:")
+                
+                if not st.session_state.df_unsubscribed.empty:
+                    # Get emails for multiselect
+                    all_emails = st.session_state.df_unsubscribed['email'].tolist()
+                    
+                    # Allow selection of multiple emails to delete
+                    emails_to_delete = st.multiselect(
+                        "Select emails to remove from unsubscribe list:",
+                        options=all_emails
+                    )
+                    
+                    if emails_to_delete and st.button("Delete Selected Emails"):
+                        # Filter out the selected emails
+                        st.session_state.df_unsubscribed = st.session_state.df_unsubscribed[
+                            ~st.session_state.df_unsubscribed['email'].isin(emails_to_delete)
+                        ]
+                        
+                        # Save the updated dataframe
+                        try:
+                            st.session_state.df_unsubscribed.to_csv("unsubscribed_users.csv", index=False)
+                            st.success(f"Successfully removed {len(emails_to_delete)} email(s)!")
+                            
+                            # Try to save to the additional locations
+                            save_unsubscribed_users_to_all_locations(st.session_state.df_unsubscribed)
+                        except Exception as e:
+                            st.error(f"Error saving changes: {e}")
+                    
+                    # Option to clear all unsubscribed users
+                    if st.button("Clear All Unsubscribed Users", type="primary", use_container_width=True):
+                        confirm = st.checkbox("I understand this will permanently delete all unsubscribe data")
+                        
+                        if confirm:
+                            # Create empty DataFrame with just the headers
+                            st.session_state.df_unsubscribed = pd.DataFrame(columns=st.session_state.df_unsubscribed.columns)
+                            
+                            # Save the empty dataframe
+                            try:
+                                st.session_state.df_unsubscribed.to_csv("unsubscribed_users.csv", index=False)
+                                st.success("Unsubscribe list has been cleared!")
+                                
+                                # Try to save to the additional locations
+                                save_unsubscribed_users_to_all_locations(st.session_state.df_unsubscribed)
+                            except Exception as e:
+                                st.error(f"Error clearing list: {e}")
+                else:
+                    st.info("No unsubscribed users in the list.")
+            
+            with tab3:
+                st.write("Add new email addresses to the unsubscribe list:")
+                
+                # Input for a new email
+                new_email = st.text_input("Enter email address to add:")
+                
+                # Button to add a single email
+                if new_email and st.button("Add Email"):
+                    if '@' in new_email:  # Basic validation
+                        # Check if email already exists
+                        if new_email.lower() in st.session_state.df_unsubscribed['email'].str.lower().values:
+                            st.warning(f"Email {new_email} is already in the unsubscribe list.")
+                        else:
+                            # Get current timestamp
+                            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            
+                            # Prepare new row with same columns as existing dataframe
+                            new_row = pd.DataFrame({
+                                'email': [new_email.lower().strip()],
+                                'reason': ["Added via debug page"],
+                                'timestamp': [timestamp]
+                            })
+                            
+                            # Append to the dataframe
+                            st.session_state.df_unsubscribed = pd.concat([st.session_state.df_unsubscribed, new_row], ignore_index=True)
+                            
+                            # Save updated dataframe
+                            try:
+                                st.session_state.df_unsubscribed.to_csv("unsubscribed_users.csv", index=False)
+                                st.success(f"Successfully added {new_email} to unsubscribe list!")
+                                
+                                # Try to save to the additional locations
+                                save_unsubscribed_users_to_all_locations(st.session_state.df_unsubscribed)
+                            except Exception as e:
+                                st.error(f"Error saving changes: {e}")
+                    else:
+                        st.error("Please enter a valid email address.")
+                
+                # Text area for bulk email addition
+                bulk_emails = st.text_area("Or enter multiple emails (one per line):")
+                
+                if bulk_emails and st.button("Add All Emails"):
+                    # Process the bulk emails
+                    emails_list = [email.strip() for email in bulk_emails.split('\n') if email.strip()]
+                    valid_emails = [email for email in emails_list if '@' in email]
+                    
+                    if valid_emails:
+                        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        
+                        # Create DataFrame for new emails
+                        new_rows = pd.DataFrame({
+                            'email': [email.lower().strip() for email in valid_emails],
+                            'reason': ["Bulk added via debug page"] * len(valid_emails),
+                            'timestamp': [timestamp] * len(valid_emails)
+                        })
+                        
+                        # Remove any duplicates with existing data
+                        existing_emails = set(st.session_state.df_unsubscribed['email'].str.lower())
+                        new_rows = new_rows[~new_rows['email'].str.lower().isin(existing_emails)]
+                        
+                        if not new_rows.empty:
+                            # Append to the dataframe
+                            st.session_state.df_unsubscribed = pd.concat([st.session_state.df_unsubscribed, new_rows], ignore_index=True)
+                            
+                            # Save updated dataframe
+                            try:
+                                st.session_state.df_unsubscribed.to_csv("unsubscribed_users.csv", index=False)
+                                st.success(f"Successfully added {len(new_rows)} new email(s) to unsubscribe list!")
+                                
+                                # Try to save to the additional locations
+                                save_unsubscribed_users_to_all_locations(st.session_state.df_unsubscribed)
+                            except Exception as e:
+                                st.error(f"Error saving changes: {e}")
+                        else:
+                            st.info("No new unique emails to add.")
+                    else:
+                        st.error("No valid email addresses found.")
+            
+            with tab4:
+                st.write("Upload a CSV file with emails to append to the unsubscribe list:")
+                
+                uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
+                
+                if uploaded_file is not None:
+                    try:
+                        # Read the uploaded file
+                        uploaded_df = pd.read_csv(uploaded_file)
+                        
+                        # Display the uploaded data
+                        st.write("Uploaded data preview:")
+                        st.dataframe(uploaded_df.head())
+                        
+                        # Determine which column contains emails
+                        email_column = None
+                        
+                        # Check if 'email' column exists
+                        if 'email' in uploaded_df.columns:
+                            email_column = 'email'
+                        else:
+                            # Try to find a column that might contain emails
+                            for col in uploaded_df.columns:
+                                if uploaded_df[col].dtype == 'object' and uploaded_df[col].str.contains('@').any():
+                                    email_column = col
+                                    break
+                        
+                        if email_column:
+                            st.write(f"Using column '{email_column}' for email addresses.")
+                            
+                            # Process button
+                            if st.button("Process Upload & Append"):
+                                # Extract valid emails
+                                valid_emails = uploaded_df[email_column].dropna().astype(str)
+                                valid_emails = valid_emails[valid_emails.str.contains('@')]
+                                
+                                if not valid_emails.empty:
+                                    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    
+                                    # Create DataFrame for new emails
+                                    new_rows = pd.DataFrame({
+                                        'email': [email.lower().strip() for email in valid_emails],
+                                        'reason': ["Imported via CSV upload"] * len(valid_emails),
+                                        'timestamp': [timestamp] * len(valid_emails)
+                                    })
+                                    
+                                    # Remove any duplicates with existing data
+                                    existing_emails = set(st.session_state.df_unsubscribed['email'].str.lower())
+                                    new_rows = new_rows[~new_rows['email'].str.lower().isin(existing_emails)]
+                                    
+                                    if not new_rows.empty:
+                                        # Append to the dataframe
+                                        st.session_state.df_unsubscribed = pd.concat([st.session_state.df_unsubscribed, new_rows], ignore_index=True)
+                                        
+                                        # Save updated dataframe
+                                        try:
+                                            st.session_state.df_unsubscribed.to_csv("unsubscribed_users.csv", index=False)
+                                            st.success(f"Successfully imported {len(new_rows)} new email(s)!")
+                                            
+                                            # Try to save to the additional locations
+                                            save_unsubscribed_users_to_all_locations(st.session_state.df_unsubscribed)
+                                        except Exception as e:
+                                            st.error(f"Error saving changes: {e}")
+                                    else:
+                                        st.info("No new unique emails to add.")
+                                else:
+                                    st.error("No valid email addresses found in the uploaded file.")
+                        else:
+                            st.error("Could not identify a column containing email addresses.")
+                    except Exception as e:
+                        st.error(f"Error processing CSV file: {e}")
+        else:
+            st.info("unsubscribed_users.csv not found. Creating a new file.")
+            
+            # Create a new DataFrame with required columns
+            df = pd.DataFrame(columns=['email', 'reason', 'timestamp'])
+            
+            # Save it to create the file
+            df.to_csv("unsubscribed_users.csv", index=False)
+            
+            # Add to session state
+            st.session_state.df_unsubscribed = df.copy()
+            
+            # Reload the page to show the new file
+            st.rerun()
+        
+        # Function to check and download files
+        st.header("File Actions")
+        if st.button("Download unsubscribed_users.csv"):
+            if csv_exists:
+                csv_data = st.session_state.df_unsubscribed.to_csv(index=False)
+                st.download_button(
+                    label="Download CSV",
+                    data=csv_data,
+                    file_name="unsubscribed_users.csv",
+                    mime="text/csv"
+                )
+            else:
+                st.error("File does not exist")
+        
         return
+    
+    # Get path from URL using the non-experimental API
+    url_path = st.query_params.get("page", [""])[0]
+    
+    # Check if this is an unsubscribe request
+    if "unsubscribe" in st.query_params:
+        handle_unsubscribe()
+        return
+    
+    # Also check for /unsubscribe in the URL path directly
+    if url_path == "unsubscribe":
+        handle_unsubscribe()
+        return
+    
+    # If no special page is requested, display the main app
+    # CSS for enhanced styling with increased spacing
+    st.markdown(
+        """
+        <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+        }
+        # Rest of your CSS...
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Rest of your main function...
+
+# Helper function to save unsubscribed users to all locations
+def save_unsubscribed_users_to_all_locations(df):
+    """Save the unsubscribed users DataFrame to all locations for the email script."""
+    try:
+        # Save to original location
+        df.to_csv("unsubscribed_users.csv", index=False)
+        
+        # Additional locations from the email script
+        mac_paths = [
+            os.path.expanduser('~/Documents/Python/unsubscribed_users.csv'),
+            os.path.expanduser('~/unsubscribed_users.csv'),
+            '/tmp/unsubscribed_users.csv'
+        ]
+        
+        for path in mac_paths:
+            try:
+                # Create directory if it doesn't exist
+                os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+                # Copy the file
+                df.to_csv(path, index=False)
+            except Exception:
+                continue
+                
+        # Export to JSON format as well
+        json_data = df.to_json(orient='records')
+        with open('unsubscribed_users.json', 'w') as f:
+            f.write(json_data)
+            
+        # Also try to save JSON to Python folder
+        json_path = os.path.expanduser('~/Documents/Python/unsubscribed_users.json')
+        try:
+            os.makedirs(os.path.dirname(json_path) or '.', exist_ok=True)
+            with open(json_path, 'w') as f:
+                f.write(json_data)
+        except:
+            pass
+            
+        return True
+    except Exception as e:
+        st.error(f"Error saving to multiple locations: {e}")
+        return False
     
     # Get path from URL using the non-experimental API
     url_path = st.query_params.get("page", [""])[0]
