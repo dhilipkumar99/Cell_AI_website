@@ -30,8 +30,10 @@ def handle_unsubscribe():
     
     # Create a form for unsubscribing
     with st.form("unsubscribe_form"):
+        # Show full email address (no truncation) - ensure it's visible and properly displayed
         if email:
-            email_input = st.text_input("Your Email Address", value=email, disabled=True)
+            st.write(f"Email address to unsubscribe: **{email}**")
+            email_input = st.text_input("Your Email Address", value=email)
         else:
             email_input = st.text_input("Your Email Address", placeholder="Enter your email address")
         
