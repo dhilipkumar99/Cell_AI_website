@@ -20,9 +20,13 @@ def image_to_base64(image_path):
 def handle_unsubscribe():
     st.title("Unsubscribe from CellAI Email Communications")
     
-    # Get email from query parameters
+    # Get email from query parameters - check multiple possible parameter names
     query_params = st.experimental_get_query_params()
     email = query_params.get("email", [""])[0]
+    
+    # If email is not in the query params directly, check if it's passed as part of the unsubscribe parameter
+    if not email and "unsubscribe" in query_params:
+        email = query_params.get("unsubscribe", [""])[0]
     
     # Create a form for unsubscribing
     with st.form("unsubscribe_form"):
@@ -170,16 +174,21 @@ def show_admin_page():
 
 # Check for route/page to display
 def main():
-    # Get query parameters
-    query_params = st.experimental_get_query_params()
+    # Get path from URL
+    url_path = st.experimental_get_query_params().get("page", [""])[0]
     
     # Check if this is an unsubscribe request
-    if 'page' in query_params and query_params['page'][0] == 'unsubscribe':
+    if "unsubscribe" in st.experimental_get_query_params():
+        handle_unsubscribe()
+        return
+    
+    # Also check for /unsubscribe in the URL path directly
+    if url_path == "unsubscribe":
         handle_unsubscribe()
         return
     
     # Check if this is an admin panel request
-    if 'page' in query_params and query_params['page'][0] == 'admin':
+    if url_path == "admin":
         show_admin_page()
         return
     
@@ -365,7 +374,7 @@ def main():
             <p>CellAI is committed to accelerating scientific discovery through innovation.</p>
             <p>For support, inquiries, or partnership opportunities, reach out at <a href="mailto:cell.ai.solutions@gmail.com" style="color: lightblue;">cell.ai.solutions@gmail.com</a>.</p>
             <p>Stay connected with us on <a href="#" style="color: lightblue;">Twitter</a>, <a href="#" style="color: lightblue;">LinkedIn</a>, and <a href="#" style="color: lightblue;">GitHub</a> for updates, tips, and community resources.</p>
-            <p><a href="?page=unsubscribe" style="color: lightblue;">Unsubscribe from emails</a></p>
+            <p><a href="?unsubscribe=true" style="color: lightblue;">Unsubscribe from emails</a></p>
             <p>© 2025 CellAI Solutions. All rights reserved.</p>
         </footer>
         """,
